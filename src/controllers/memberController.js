@@ -14,7 +14,9 @@ const createMember = async (req, res, next) => {
 
 const getBorrowings = async (req, res, next) => {
   try {
-    res.json({ data: [], pagination: {} });
+    const { id } = req.params;
+    const result = await memberService.getMemberBorrowings(id, req.query);
+    res.json(result);
   } catch (err) {
     next(err);
   }

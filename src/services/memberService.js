@@ -1,4 +1,5 @@
 const MemberModel = require('../models/member');
+const BorrowingModel = require('../models/borrowing');
 
 // Validasi email format
 function validateEmail(email) {
@@ -57,6 +58,55 @@ async function registerMember(data) {
   };
 }
 
+async function getMemberBorrowings(memberId, params) {
+  // Validasi member exists
+  const member = await MemberModel.findById(memberId);
+  if (!member) {
+    const err = new Error('Member not found');
+    err.status = 404;
+    throw err;
+  }
+
+  const page = Number(params.page) || 1;
+  const limit = Number(params.limit) || 10;
+  const offset = (page - 1) * limit;
+  const status = params.status || null;
+
+  const borrowings = await BorrowingModel.getByMemberId(memberId, {
+    status,
+    limit,
+    offset,
+  });
+
+  const total = await BorrowingModel.countByMemberId(memberId, status);
+
+  const data = borrowings.map(item => ({
+    id: item.id,
+    borrow_date: item.borrow_date,
+    return_date: item.return_date,
+    status: item.status,
+    created_at: item.created_at,
+    book: {
+      id: item.book_id,
+      title: item.title,
+      author: item.author,
+      isbn: item.isbn,
+      published_year: item.published_year,
+    },
+  }));
+
+  return {
+    data,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
 module.exports = {
   registerMember,
+  getMemberBorrowings,
 };
