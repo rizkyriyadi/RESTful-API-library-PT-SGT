@@ -1,6 +1,12 @@
+const memberService = require('../services/memberService');
+
 const createMember = async (req, res, next) => {
   try {
-    res.status(201).json({ message: 'member created (dummy)' });
+    const result = await memberService.registerMember(req.body);
+    res.status(201).json({
+      success: true,
+      data: result,
+    });
   } catch (err) {
     next(err);
   }
